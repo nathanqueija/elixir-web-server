@@ -2,27 +2,25 @@ defmodule HttpServerTest do
   use ExUnit.Case
 
   alias Servy.HttpServer
-  alias Servy.HttpClient
 
   test "accepts a request on a socket and sends back a response" do
-    spawn(HttpServer, :start, [8080])
+    spawn(HttpServer, :start, [4002])
 
-    request = """
-    GET /wildthings HTTP/1.1\r
-    Host: example.com\r
-    User-Agent: ExampleBrowser/1.0\r
-    Accept: */*\r
-    \r
-    """
+    urls = [
+      "http://localhost:4002/wildthings",
+      "http://localhost:4002/bears",
+      "http://localhost:4002/bears/1",
+      "http://localhost:4002/wildlife",
+      "http://localhost:4002/api/bears"
+    ]
 
-    response = HttpClient.send_request(request)
+    urls
+    |> Enum.map(&Task.async(fn -> HTTPoison.get(&1) end))
+    |> Enum.map(&Task.await/1)
+    |> Enum.map(&assert_successful_response/1)
+  end
 
-    assert response == """
-    HTTP/1.1 200 OK\r
-    Content-Type: text/html\r
-    Content-Length: 20\r
-    \r
-    Bears, Lions, Tigers
-    """
+  defp assert_successful_response({:ok, response}) do
+    assert response.status_code == 200
   end
 end
