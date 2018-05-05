@@ -24,6 +24,7 @@ defmodule Servy.Handler do
     |> log
     |> route
     |> track
+    |> put_content_length
     # |> emojify
     |> format_response
 
@@ -36,6 +37,14 @@ defmodule Servy.Handler do
   def route(%Conv{method: "GET", path: "/bears"} = conv) do
     BearController.index(conv)
   end
+
+  def route(%Conv{method: "GET", path: "/api/bears"} = conv) do
+    Servy.Api.BearController.index(conv)
+  end
+
+  def route(%Conv{method: "POST", path: "/api/bears"} = conv) do
+  Servy.Api.BearController.create(conv, conv.params)
+end
 
   def route(%Conv{method: "GET", path: "/bears/new"} = conv) do
     @pages_path
@@ -72,19 +81,46 @@ defmodule Servy.Handler do
     |> handle_file(conv)
   end
 
+  def route(%Conv{method: "GET", path: "/pages/" <> name} = conv) do
+  @pages_path
+  |> Path.join("#{name}.md")
+  |> File.read
+  |> handle_file(conv)
+  |> markdown_to_html
+end
+
+def markdown_to_html(%Conv{status: 200} = conv) do
+  %{ conv | resp_body: Earmark.as_html!(conv.resp_body) }
+end
+
+def markdown_to_html(%Conv{} = conv), do: conv
+
+
   def route(%Conv{path: path} = conv) do
     %{conv | resp_body: "No #{path} here!", status: 404}
   end
 
   def format_response(%Conv{} = conv) do
-    # TODO: Use values in the map to create an HTTP response
     """
     HTTP/1.1 #{Conv.full_status(conv)}\r
-    Content-Type: text/html\r
-    Content-Length: #{byte_size(conv.resp_body)}\r
+    #{format_response_headers(conv)}
     \r
     #{conv.resp_body}
     """
+  end
+
+  # or using a comprehension:
+
+  defp format_response_headers(conv) do
+
+    for {key, value} <- conv.resp_headers do
+      "#{key}: #{value}\r"
+    end |> Enum.sort |> Enum.reverse |> Enum.join("\n")
+end
+
+  def put_content_length(conv) do
+    headers = Map.put(conv.resp_headers, "Content-Length", String.length(conv.resp_body))
+    %{ conv | resp_headers: headers }
   end
 
   def emojify(%{status: 200} = conv) do
