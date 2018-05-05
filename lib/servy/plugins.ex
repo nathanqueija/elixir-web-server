@@ -5,7 +5,9 @@ defmodule Servy.Plugins do
     Logs 404 requests
   """
   def track(%Conv{status: 404, path: path} = conv) do
-    Logger.error "Warning: #{path} does not exist!"
+    if Mix.env != :test do
+      Logger.error "Warning: #{path} does not exist!"
+    end
     conv
   end
 
@@ -29,5 +31,10 @@ defmodule Servy.Plugins do
 
   def rewrite_path_captures(%Conv{} = conv, nil), do: conv
 
-  def log(conv), do:  IO.inspect conv
+  def log(%Conv{} = conv)do
+    if Mix.env == :dev do
+      IO.inspect conv
+    end
+    conv
+  end
 end
