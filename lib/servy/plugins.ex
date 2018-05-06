@@ -5,11 +5,12 @@ defmodule Servy.Plugins do
     Logs 404 requests
   """
   def track(%Conv{status: 404, path: path} = conv) do
-    if Mix.env != :test do
-      Logger.error "Warning: #{path} does not exist!"
-    end
-    conv
+  if Mix.env != :test do
+    IO.puts "Warning: #{path} is on the loose!"
+    Servy.FourOhFourCounter.bump_count(path)
   end
+  conv
+end
 
   def track(%Conv{} = conv), do: conv
 
