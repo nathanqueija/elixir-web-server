@@ -6,6 +6,7 @@ defmodule Servy.Handler do
 
   alias Servy.Conv
   alias Servy.BearController
+  alias Servy.PledgeController
   alias Servy.VideoCam
 
   @pages_path Path.expand("pages", File.cwd!)
@@ -42,6 +43,18 @@ defmodule Servy.Handler do
 
     where_is_bigfoot = Task.await(task)
     render(conv, "sensors.eex", snapshots: snapshots, location: where_is_bigfoot)
+  end
+
+  def route(%Conv{method: "POST", path: "/pledges"} = conv) do
+    PledgeController.create(conv, conv.params)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges"} = conv) do
+    PledgeController.index(conv)
+  end
+
+  def route(%Conv{method: "GET", path: "/pledges/new"} = conv) do
+    PledgeController.new(conv)
   end
 
   def route(%Conv{method: "GET", path: "/wildthings"} = conv) do
@@ -86,6 +99,12 @@ end
     |> Path.join("about.html")
     |> File.read
     |> handle_file(conv)
+  end
+
+  def route(%Conv{method: "GET", path: "/404s"} = conv) do
+    counts = Servy.FourOhFourCounter.get_counts()
+
+    %{ conv | status: 200, resp_body: inspect counts }
   end
 
   def route(%Conv{method: "GET", path: "/pages/" <> file} = conv) do
