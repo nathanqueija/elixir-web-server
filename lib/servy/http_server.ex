@@ -7,6 +7,7 @@ defmodule Servy.HttpServer do
 
 
     Servy.OtpFourOhFourCounter.start()
+    Servy.SensorServer.start()
 
     {:ok, pid} = Servy.PledgeServerWithOtpGenServer.start()
 
