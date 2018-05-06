@@ -9,3 +9,9 @@ Just run:
 ```elixir
 iex -S mix
 ```
+
+and you'll get the iex back or if you prefer run:
+
+```elixir
+mix run
+```
