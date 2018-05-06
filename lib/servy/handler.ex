@@ -102,7 +102,7 @@ end
   end
 
   def route(%Conv{method: "GET", path: "/404s"} = conv) do
-    counts = Servy.FourOhFourCounter.get_counts()
+    counts = Servy.OtpFourOhFourCounter.get_counts()
 
     %{ conv | status: 200, resp_body: inspect counts }
   end
