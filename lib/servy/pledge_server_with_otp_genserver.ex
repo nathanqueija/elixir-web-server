@@ -7,9 +7,9 @@ defmodule Servy.PledgeServerWithOtpGenServer do
     defstruct cache_size: 3, pledges: []
   end
 
-  def start do
-    IO.puts "Starting the pledge server"
-    GenServer.start(__MODULE__, %State{}, name: @process_name)
+  def start_link(_arg) do
+    IO.puts "Starting the pledge server..."
+    GenServer.start_link(__MODULE__, %State{}, name: @process_name)
   end
 
 # Client Interface
